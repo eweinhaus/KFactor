@@ -1,0 +1,329 @@
+%% K-Factor Viral Growth System - Architecture Diagrams
+%% Based on planning/architecture.md
+
+%% ============================================
+%% High-Level Architecture
+%% ============================================
+graph TB
+    subgraph "Frontend Layer"
+        UI[Next.js App<br/>TypeScript + Tailwind CSS]
+        P1[/practice<br/>Practice Test]
+        P2[/results/:id<br/>Results Page]
+        P3[/invite/:code<br/>Challenge Landing]
+        P4[/challenge/:id<br/>Take Challenge]
+        P5[/analytics<br/>K-Factor Dashboard]
+    end
+    
+    subgraph "API Layer - Next.js API Routes"
+        API[API Router]
+        ORCH[Loop Orchestrator Agent]
+        SESSION[Session Intelligence]
+        ATTR[Attribution Service]
+        REWARD[Reward Service]
+    end
+    
+    subgraph "Data Layer"
+        DB[(Firebase Firestore)]
+        USERS[users Collection]
+        RESULTS[practice_results Collection]
+        INVITES[invites Collection<br/>challenge_data embedded]
+        DECISIONS[decisions Collection]
+        COUNTERS[analytics_counters<br/>Pre-calculated metrics]
+    end
+    
+    UI --> P1 & P2 & P3 & P4 & P5
+    P1 & P2 & P3 & P4 & P5 -->|HTTP| API
+    API --> ORCH & SESSION & ATTR & REWARD
+    ORCH -->|Log Decisions| DECISIONS
+    SESSION -->|Store Challenges| INVITES
+    ATTR -->|Track Invites| INVITES
+    REWARD -->|Update Users| USERS
+    API -->|Query/Write| DB
+    DB --> USERS & RESULTS & INVITES & DECISIONS & COUNTERS
+
+%% ============================================
+%% Complete Viral Loop Flow
+%% ============================================
+sequenceDiagram
+    participant U as User (Alex)
+    participant FE as Frontend
+    participant API as API Routes
+    participant ORCH as Orchestrator Agent
+    participant SI as Session Intelligence
+    participant ATTR as Attribution Service
+    participant DB as Firestore
+    
+    U->>FE: Complete practice test
+    FE->>API: POST /api/practice/complete
+    API->>DB: Save practice_results
+    API-->>FE: {resultId, score, shouldShowInvite}
+    FE->>U: Show results + "Challenge Friend" button
+    
+    Note over FE,API: Orchestrator NOT called here
+    
+    U->>FE: Click "Challenge Friend"
+    FE->>API: POST /api/invite/create
+    API->>ORCH: POST /api/orchestrator/decide
+    ORCH->>DB: Query invite_count, last_invite
+    ORCH->>DB: Log decision
+    ORCH-->>API: {shouldTrigger: true, rationale}
+    API->>SI: generateChallenge(result)
+    SI->>DB: Query skill bank (in-memory)
+    SI-->>API: {skill, questions, share_copy}
+    API->>ATTR: generateSmartLink(userId, challenge)
+    ATTR->>DB: Create invite record
+    ATTR->>DB: Update analytics_counters (invites_sent +1)
+    ATTR-->>API: {shortCode, shareUrl}
+    API-->>FE: {shareUrl, shareCard}
+    FE->>U: Display share link
+    
+    Note over U,DB: User shares link with friend (Sam)
+    
+    participant S as Friend (Sam)
+    S->>FE: Click invite link
+    FE->>API: GET /api/invite/:shortCode
+    API->>DB: Log opened_at (if not already), Update counters (invites_opened +1)
+    API->>DB: Return invite data
+    API-->>FE: {inviter, challenge}
+    FE->>S: Show landing page
+    
+    S->>FE: Accept challenge (sign up)
+    FE->>API: POST /api/invite/:code/accept
+    API->>DB: Create user, Log invitee_id, Update counters (invites_accepted +1)
+    API-->>FE: {challenge}
+    FE->>S: Show challenge page
+    
+    S->>FE: Complete challenge
+    FE->>API: POST /api/challenge/complete
+    API->>DB: Log fvm_reached_at, Update XP for both users
+    API->>DB: Update counters (fvm_reached +1)
+    API-->>FE: {score, reward}
+    FE->>S: Show success + reward
+    
+    Note over API,DB: Analytics counters updated on each event (write-time)
+
+%% ============================================
+%% Loop Orchestrator Agent Decision Flow
+%% ============================================
+graph TD
+    START[Event Received] --> CHECK1{Test<br/>Completed?}
+    CHECK1 -->|No| SKIP1[Skip: No practice completion]
+    CHECK1 -->|Yes| CHECK2{Invites Today<br/>< 3?}
+    CHECK2 -->|No| SKIP2[Skip: Rate limit reached]
+    CHECK2 -->|Yes| CHECK3{Last Invite<br/>> 1hr ago?}
+    CHECK3 -->|No| SKIP3[Skip: Cooldown period]
+    CHECK3 -->|Yes| CHECK4{Score<br/>≥ 50?}
+    CHECK4 -->|No| SKIP4[Skip: Score too low]
+    CHECK4 -->|Yes| TRIGGER[Trigger: buddy_challenge]
+    
+    SKIP1 & SKIP2 & SKIP3 & SKIP4 --> LOG[Log Decision to DB]
+    TRIGGER --> LOG
+    
+    LOG --> RETURN[Return Decision + Rationale]
+
+%% ============================================
+%% Database Schema - Entity Relationship
+%% ============================================
+erDiagram
+    USERS ||--o{ PRACTICE_RESULTS : has
+    USERS ||--o{ INVITES : creates
+    USERS ||--o{ DECISIONS : triggers
+    INVITES ||--o| CHALLENGES : contains
+    
+    USERS {
+        string id PK
+        string email
+        string name
+        number xp
+        timestamp created_at
+    }
+    
+    PRACTICE_RESULTS {
+        string id PK
+        string user_id FK
+        number score
+        array skill_gaps
+        timestamp completed_at
+    }
+    
+    INVITES {
+        string id PK
+        string short_code UK
+        string inviter_id FK
+        string loop_type
+        timestamp created_at
+        timestamp opened_at
+        string invitee_id FK
+        timestamp fvm_reached_at
+        json challenge_data
+    }
+    
+    DECISIONS {
+        string id PK
+        string user_id FK
+        string event_type
+        string decision
+        string rationale
+        array features_used
+        timestamp created_at
+    }
+    
+    ANALYTICS_COUNTERS {
+        string id PK
+        number total_users
+        number total_invites_sent
+        number total_invites_opened
+        number total_invites_accepted
+        number total_fvm_reached
+        timestamp last_updated
+    }
+
+%% ============================================
+%% API Endpoint Architecture
+%% ============================================
+graph TD
+    subgraph "Practice Flow"
+        A[POST /api/practice/complete<br/>Returns: shouldShowInvite]
+    end
+    
+    subgraph "Invite Flow"
+        B[POST /api/invite/create<br/>Calls Orchestrator] --> C[GET /api/invite/:shortCode]
+        C --> D[POST /api/invite/:code/accept]
+    end
+    
+    subgraph "Challenge Flow"
+        D --> E[POST /api/challenge/complete]
+    end
+    
+    subgraph "Analytics"
+        F[GET /api/analytics<br/>Reads counters]
+    end
+    
+    A --> B
+    E --> F
+
+%% ============================================
+%% Smart Link Attribution Tracking
+%% ============================================
+graph LR
+    A[Invite Created] --> B[Short Code: abc123]
+    B --> C[Smart Link: vt.ly/abc123]
+    C --> D[Friend Clicks Link]
+    D --> E[Log: opened_at]
+    E --> F[Friend Signs Up]
+    F --> G[Log: invitee_id]
+    G --> H[Friend Completes Challenge]
+    H --> I[Log: fvm_reached_at]
+    I --> J[Calculate K-Factor]
+
+%% ============================================
+%% K-Factor Calculation Flow
+%% ============================================
+graph TD
+    START[Analytics Request] --> FETCH[Read Counters + User Count]
+    
+    FETCH --> COUNTERS[analytics_counters.main]
+    FETCH --> USERS[Simple User Count]
+    
+    COUNTERS --> EXTRACT[Extract Metrics:<br/>invites_sent, fvm_reached]
+    USERS --> CALC1[Invites per User<br/>= invites_sent / total_users]
+    EXTRACT --> CALC3[Conversion Rate<br/>= fvm_reached / invites_sent]
+    
+    CALC1 --> K[K-Factor<br/>= Invites/User × Conversion]
+    CALC3 --> K
+    
+    COUNTERS --> FUNNEL[Build Funnel Data<br/>from counters]
+    FUNNEL --> RETURN[Return Metrics]
+    
+    style COUNTERS fill:#e1f5ff
+    style FETCH fill:#fff4e1
+
+%% ============================================
+%% Agent Communication Pattern
+%% ============================================
+graph TB
+    EVENT[User Event] --> ORCH[Loop Orchestrator]
+    ORCH --> DECISION{Decision}
+    DECISION -->|Trigger| SI[Session Intelligence]
+    DECISION -->|Skip| LOG1[Log Skip Decision]
+    SI --> CHALLENGE[Generate Challenge]
+    CHALLENGE --> ATTR[Attribution Service]
+    ATTR --> INVITE[Create Invite]
+    INVITE --> LOG2[Log Trigger Decision]
+    
+    style ORCH fill:#e1f5ff
+    style SI fill:#fff4e1
+    style ATTR fill:#e8f5e9
+
+%% ============================================
+%% Error Handling & Graceful Degradation
+%% ============================================
+graph TD
+    TRY[Try Agent Decision] --> SUCCESS{Success?}
+    SUCCESS -->|Yes| USE[Use Agent Result]
+    SUCCESS -->|No| FALLBACK[Use Default]
+    
+    FALLBACK --> DEFAULT_COPY[Default Copy:<br/>"Challenge a Friend!"]
+    FALLBACK --> DEFAULT_QUESTIONS[Generic Questions<br/>from Skill Bank]
+    
+    USE --> CONTINUE[Continue Flow]
+    DEFAULT_COPY --> CONTINUE
+    DEFAULT_QUESTIONS --> CONTINUE
+
+%% ============================================
+%% Security & Privacy Architecture
+%% ============================================
+graph TD
+    SHARE[Generate Share Card] --> CHECK[Privacy Check]
+    CHECK --> REMOVE[Remove PII]
+    REMOVE --> VALIDATE[Validate Content]
+    VALIDATE --> SAFE[Privacy-Safe Card]
+    
+    INVITE[Create Invite] --> RATE[Rate Limit Check]
+    RATE --> VALID[Valid?]
+    VALID -->|No| BLOCK[Block Invite]
+    VALID -->|Yes| ALLOW[Allow Invite]
+    
+    style SAFE fill:#c8e6c9
+    style BLOCK fill:#ffcdd2
+    style ALLOW fill:#c8e6c9
+
+%% ============================================
+%% Deployment Architecture
+%% ============================================
+graph LR
+    CODE[GitHub Repo] --> BUILD[Vercel Build]
+    BUILD --> DEPLOY[Deploy to Vercel]
+    DEPLOY --> CDN[Global CDN]
+    CDN --> USERS[Users]
+    
+    DEPLOY --> FIREBASE[Firebase Firestore]
+    FIREBASE --> API[API Routes]
+    API --> CDN
+
+%% ============================================
+%% Component Architecture
+%% ============================================
+graph LR
+    subgraph "Pages"
+        A[Practice Test Page] --> B[Results Page]
+        B --> C[Challenge Button]
+        C --> D[Share Modal]
+        E[Invite Landing] --> F[Challenge Page]
+        G[Analytics Dashboard]
+    end
+    
+    subgraph "Components"
+        H[PracticeQuestion]
+        I[ResultsDisplay]
+        J[ShareCard]
+        K[ChallengeQuiz]
+        L[AnalyticsMetrics]
+    end
+    
+    A --> H
+    B --> I
+    D --> J
+    F --> K
+    G --> L
+
