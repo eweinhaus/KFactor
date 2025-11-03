@@ -1,8 +1,8 @@
 # High-Level Implementation Tasks
 
 **Project:** 10x K-Factor Viral Growth System - MVP  
-**Version:** 1.0  
-**Last Updated:** 2025-01-21
+**Version:** 1.1  
+**Last Updated:** 2025-01-21 (Added Phase 10: Deployment)
 
 ---
 
@@ -219,6 +219,92 @@ This document outlines the high-level implementation tasks in the order they sho
 
 ---
 
+## Phase 10: Deployment & Production Setup (Days 14-15)
+**Goal**: Deploy MVP to production with separate Firebase production project
+
+### 28. Firebase Production Project Setup
+- Create separate Firebase project for production (e.g., `kfactor-prod`)
+- **Important**: Keep dev/test project separate from production
+- Configure production project:
+  - Enable Firestore database
+  - Create all required collections (`users`, `practice_results`, `invites`, `decisions`, `analytics_counters`)
+  - Set up Firestore security rules (production-ready)
+  - Deploy Firestore indexes (`firestore.indexes.json`)
+  - Create service account key for production
+  - **Note**: Use different project ID than dev/test project
+
+### 29. Environment Configuration
+- Create production environment variables:
+  - `FIREBASE_SERVICE_ACCOUNT_KEY` (production service account)
+  - `NEXT_PUBLIC_FIREBASE_PROJECT_ID` (production project ID)
+  - `NEXT_PUBLIC_FIREBASE_API_KEY` (production API key)
+- Set up `.env.production` or Vercel environment variables
+- **Security**: Never commit production keys to git
+
+### 30. Vercel Deployment
+- Connect GitHub repository to Vercel
+- Configure build settings:
+  - Framework: Next.js
+  - Build command: `npm run build`
+  - Output directory: `.next`
+- Set production environment variables in Vercel dashboard
+- Deploy to production URL
+- Verify deployment successful
+
+### 31. Production Verification
+- Test production deployment:
+  - Verify API endpoints work (`/api/orchestrator/decide`, etc.)
+  - Test practice test flow end-to-end
+  - Verify Firestore connection (production project)
+  - Check Firestore indexes are deployed
+  - Test analytics dashboard
+- **Important**: Test against production Firestore (not dev/test project)
+
+### 32. Domain & DNS (Optional)
+- Configure custom domain (if required)
+- Set up DNS records
+- Verify SSL certificate
+
+### 33. Monitoring & Logging
+- Set up error monitoring (Vercel logs, or external service)
+- Configure logging for production
+- Monitor API response times
+- Set up alerts for critical errors
+
+---
+
+## Firebase Project Strategy
+
+### Development/Test Project
+- **Purpose**: Local development, testing, demos
+- **Project ID**: `k-factor-4634e` (or similar)
+- **Usage**: 
+  - Local development (`npm run dev`)
+  - Automated tests (with emulator)
+  - Demo/preview deployments
+  - Seed data for testing
+
+### Production Project
+- **Purpose**: Live production application
+- **Project ID**: `kfactor-prod` (or similar)
+- **Usage**:
+  - Production deployment on Vercel
+  - Real user data
+  - Production analytics
+- **Security**: 
+  - Stricter Firestore security rules
+  - Production service account keys (never in git)
+  - Environment variables in Vercel dashboard only
+
+### Best Practices
+- ✅ **Always separate dev and prod projects**
+- ✅ **Never mix test data with production data**
+- ✅ **Use different service account keys for each project**
+- ✅ **Deploy indexes to both projects**
+- ✅ **Test production deployment with production project only**
+
+---
+
 ## Critical Implementation Notes
 
 ### API Flow Architecture
@@ -285,6 +371,8 @@ Phase 7 (Challenge Completion) - Depends on Phase 6
 Phase 8 (Analytics) - Depends on Phase 7 (all events need to be tracked)
   ↓
 Phase 9 (Polish) - Depends on all previous phases
+  ↓
+Phase 10 (Deployment) - Depends on Phase 9, requires separate Firebase production project
 ```
 
 ---

@@ -131,4 +131,22 @@ export interface AgentDecision {
   features_used: string[];
 }
 
+// Event Context for Orchestrator
+export interface EventContext {
+  type: "practice_completed" | "invite_requested";
+  resultId: string;
+  score?: number;
+  skillGaps?: string[];
+}
+
+// Decision Context for Logging
+export interface DecisionContext {
+  userId: string;
+  eventType: string;
+  eventId: string;
+  score?: number;
+  invitesToday?: number;
+  lastInviteHoursAgo?: number;
+}
+
 

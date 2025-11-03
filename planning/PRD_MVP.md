@@ -1,8 +1,9 @@
 # Product Requirements Document (PRD)
 ## 10x K-Factor Viral Growth System - MVP
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** 2025-01-21  
+**Last Updated:** 2025-01-21 (Added Phase 10: Deployment)  
 **Status:** MVP Phase
 
 ---
@@ -641,7 +642,11 @@ Track at each stage:
 - **Day 10-11**: Challenge completion + rewards
 - **Day 12-14**: Analytics dashboard + polish
 
-**Total Timeline: 7-10 days** (add 3-4 day buffer for unexpected issues)
+### Week 3: Deployment (Optional Buffer)
+- **Day 14-15**: Production Firebase project setup
+- **Day 15-16**: Vercel deployment and verification
+
+**Total Timeline: 7-10 days** (add 3-4 day buffer for unexpected issues + deployment)
 
 ---
 
@@ -681,7 +686,172 @@ To demonstrate K-factor ≥ 1.20 and show the viral loop working end-to-end, rea
 
 ---
 
-## 10. Future Phases (Post-MVP)
+## 10. Deployment & Production Setup
+
+### 10.1 Firebase Project Strategy
+
+**Critical**: Separate Firebase projects for development and production.
+
+#### Development/Test Project
+- **Purpose**: Local development, testing, demos
+- **Project ID**: `k-factor-4634e` (current project)
+- **Usage**: 
+  - Local development (`npm run dev`)
+  - Automated tests (with Firebase emulator)
+  - Demo/preview deployments
+  - Seed data for testing
+  - Can be used for manual testing without emulator
+
+#### Production Project
+- **Purpose**: Live production application
+- **Project ID**: `kfactor-prod` (or similar, separate project)
+- **Usage**:
+  - Production deployment on Vercel
+  - Real user data
+  - Production analytics
+  - Live API endpoints
+
+**Best Practices**:
+- ✅ Always separate dev and prod projects
+- ✅ Never mix test data with production data
+- ✅ Use different service account keys for each project
+- ✅ Deploy indexes to both projects
+- ✅ Test production deployment with production project only
+
+### 10.2 Production Project Setup Steps
+
+1. **Create Firebase Production Project**:
+   - Go to Firebase Console: https://console.firebase.google.com
+   - Click "Add project"
+   - Name: `kfactor-prod` (or similar)
+   - Enable Google Analytics (optional)
+   - Create project
+
+2. **Enable Firestore**:
+   - Go to Firestore Database
+   - Create database
+   - Start in production mode (or test mode with security rules)
+   - Select region (same as dev project recommended)
+
+3. **Create Collections**:
+   - Create all required collections:
+     - `users`
+     - `practice_results`
+     - `invites`
+     - `decisions`
+     - `analytics_counters`
+   - Collections will be created automatically on first write (but good to verify)
+
+4. **Deploy Firestore Indexes**:
+   - Use `firestore.indexes.json` from project
+   - Deploy via Firebase CLI:
+     ```bash
+     firebase deploy --only firestore:indexes --project kfactor-prod
+     ```
+   - Or deploy via Firebase Console
+
+5. **Set Up Service Account**:
+   - Go to Project Settings > Service Accounts
+   - Generate new private key
+   - Save as production service account key
+   - **Never commit to git** - use environment variables only
+
+6. **Configure Security Rules**:
+   - Update `firestore.rules` for production (stricter than dev)
+   - Deploy rules:
+     ```bash
+     firebase deploy --only firestore:rules --project kfactor-prod
+     ```
+
+### 10.3 Environment Configuration
+
+#### Local Development (.env.local)
+```bash
+# Development/Test Project
+FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}' # Dev project key
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=k-factor-4634e
+NEXT_PUBLIC_FIREBASE_API_KEY=dev-api-key
+```
+
+#### Production (Vercel Environment Variables)
+```bash
+# Production Project
+FIREBASE_SERVICE_ACCOUNT_KEY='{"type":"service_account",...}' # Prod project key
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=kfactor-prod
+NEXT_PUBLIC_FIREBASE_API_KEY=prod-api-key
+```
+
+**Security**:
+- Never commit production keys to git
+- Use Vercel environment variables for production
+- Different keys for dev vs prod
+
+### 10.4 Vercel Deployment
+
+1. **Connect Repository**:
+   - Go to Vercel Dashboard
+   - Import GitHub repository
+   - Select project
+
+2. **Configure Build Settings**:
+   - Framework Preset: Next.js
+   - Build Command: `npm run build` (default)
+   - Output Directory: `.next` (default)
+   - Install Command: `npm install` (default)
+
+3. **Set Environment Variables**:
+   - Go to Project Settings > Environment Variables
+   - Add production Firebase credentials:
+     - `FIREBASE_SERVICE_ACCOUNT_KEY` (production key)
+     - `NEXT_PUBLIC_FIREBASE_PROJECT_ID` (production project ID)
+     - `NEXT_PUBLIC_FIREBASE_API_KEY` (production API key)
+   - Set for "Production" environment only
+
+4. **Deploy**:
+   - Click "Deploy"
+   - Wait for build to complete
+   - Verify deployment successful
+
+5. **Verify Production**:
+   - Test production URL
+   - Verify API endpoints work
+   - Check Firestore connection (production project)
+   - Verify indexes are deployed
+
+### 10.5 Testing Production Deployment
+
+**Important**: Test against production Firestore project, not dev/test project.
+
+1. **API Endpoint Testing**:
+   ```bash
+   curl -X POST https://your-app.vercel.app/api/orchestrator/decide \
+     -H "Content-Type: application/json" \
+     -d '{
+       "userId": "test_user",
+       "event": {
+         "type": "practice_completed",
+         "resultId": "test_result"
+       }
+     }'
+   ```
+
+2. **Firestore Verification**:
+   - Check Firebase Console (production project)
+   - Verify collections exist
+   - Check that data is being written
+   - Verify indexes are deployed
+
+3. **End-to-End Testing**:
+   - Complete practice test flow
+   - Create invite
+   - Accept challenge
+   - Complete challenge
+   - Verify rewards distributed
+   - Check analytics dashboard
+
+---
+
+## 11. Future Phases (Post-MVP)
 
 ### Phase 2: Additional Viral Loops
 - Streak Rescue (Student → Student)
@@ -704,9 +874,9 @@ To demonstrate K-factor ≥ 1.20 and show the viral loop working end-to-end, rea
 
 ---
 
-## 10. Risk & Compliance
+## 12. Risk & Compliance
 
-### 10.1 Risks
+### 12.1 Risks
 
 **Technical:**
 - Firestore query limitations for complex analytics (mitigation: start simple, migrate to Supabase if needed)
@@ -716,7 +886,7 @@ To demonstrate K-factor ≥ 1.20 and show the viral loop working end-to-end, rea
 - Low K-factor if users don't engage (mitigation: test with seed users, iterate on copy/UX)
 - Spam/abuse if rate limits too loose (mitigation: strict rate limiting, monitoring)
 
-### 10.2 Compliance
+### 12.2 Compliance
 
 **Data Privacy:**
 - No PII in share cards

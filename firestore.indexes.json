@@ -10,6 +10,20 @@
         },
         {
           "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "invites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "inviter_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
           "order": "ASCENDING"
         }
       ]

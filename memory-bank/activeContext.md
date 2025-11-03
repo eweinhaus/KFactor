@@ -1,17 +1,44 @@
 # Active Context: Current Work & Next Steps
 
-**Last Updated:** 2025-01-21 (Phase 3 Complete)
+**Last Updated:** 2025-11-03 (Phase 4 Complete, Phase 5 Planning Complete)
 
 ---
 
 ## Current Status
 
-**Phase**: Phase 3 Complete ✅  
-**Stage**: Practice Test Flow Complete → Ready for Phase 4 (Loop Orchestrator Agent)
+**Phase**: Phase 4 Complete ✅ | Phase 5 Planning Complete ✅  
+**Stage**: Loop Orchestrator Agent Complete → Phase 5 Implementation Ready (Invite Creation Flow)  
+**Note**: Comprehensive task list created at `planning/tasks/phase_5.md` (2025-11-03)
 
 ---
 
 ## Recent Activity
+
+### Phase 5 Planning (Complete ✅)
+
+**Completion Date**: 2025-11-03
+
+1. **Task List Created**: Comprehensive `planning/tasks/phase_5.md` document
+   - 16 detailed tasks (Tasks 11-16) covering all Phase 5 components
+   - Subtask breakdown with specific acceptance criteria
+   - Code examples and implementation guidance
+   - Potential pitfalls and warnings documented
+   - Complete Definition of Done checklist
+   - Performance targets specified (<500ms API response)
+   
+2. **Key Components Planned**:
+   - Session Intelligence Service (challenge generation)
+   - Smart Link Service (short code generation with collision handling)
+   - Invite Creation API (orchestrator integration + atomic writes)
+   - Share UI (modal/card with clipboard functionality)
+   - Comprehensive testing suite (unit, integration, E2E)
+   - Documentation updates
+
+3. **Timeline Estimated**: 6-8 hours for Phase 5 implementation
+
+4. **Dependencies Validated**: Phase 4 (Loop Orchestrator) complete and ready
+
+---
 
 ### Planning Phase (Completed)
 
@@ -47,6 +74,36 @@
 
 ### Phase 3: Practice Test Flow (Complete ✅)
 
+### Phase 4: Loop Orchestrator Agent (Complete ✅)
+
+1. **LoopOrchestrator Class**: `src/agents/LoopOrchestrator.ts` created with all 4 eligibility rules ✅
+2. **Eligibility Rules Implemented**:
+   - Rule 1: Practice completion check ✅
+   - Rule 2: Rate limiting (3 invites/day, UTC-based) ✅
+   - Rule 3: Cooldown period (1 hour between invites) ✅
+   - Rule 4: Score threshold (≥50%) ✅
+3. **Decision Logging**: All decisions logged synchronously to Firestore `decisions` collection ✅
+4. **API Endpoint**: `POST /api/orchestrator/decide` with comprehensive validation ✅
+5. **Performance**: Parallel queries implemented (rate limit + cooldown checks) ✅
+6. **Error Handling**: Graceful degradation (defaults to skip on errors) ✅
+7. **Testing**: 
+   - Unit tests for LoopOrchestrator (comprehensive coverage) ✅
+   - Integration tests for API endpoint ✅
+   - All 4 rules tested individually ✅
+   - Combined rules tested (all pass, various fails) ✅
+8. **Types Added**: `EventContext` and `DecisionContext` interfaces ✅
+
+**Key Features**:
+- Parallel query execution for performance
+- UTC-based date calculations (prevents timezone bugs)
+- Decision context logged (score, invites_today, last_invite_hours_ago)
+- Features_used array tracked for each decision
+- Comprehensive error handling
+
+**Note**: Phase 4 complete. Loop Orchestrator agent is functional and tested. Ready for Phase 5 (Invite Creation Flow).
+
+### Phase 3: Practice Test Flow (Complete ✅)
+
 1. **Shared Question Utility**: `src/lib/getTestQuestions.ts` created (deterministic 10 questions) ✅
 2. **Practice Test Page**: `app/practice/page.tsx` with 10 questions, answer selection, validation ✅
 3. **Practice Completion API**: `POST /api/practice/complete` with scoring, skill gaps, Firestore save ✅
@@ -77,12 +134,18 @@
 
 **Priority 1: Phase 4 - Loop Orchestrator Agent** (Next)
 - [ ] Build Loop Orchestrator agent (`src/agents/loopOrchestrator.ts`)
-- [ ] Implement invite creation API (`POST /api/invite/create`)
-- [ ] Session Intelligence: Challenge generation service
-- [ ] Share link generation with short codes
-- [ ] Frontend share modal/UI
+- [ ] Implement eligibility checks (rate limiting, cooldown, score threshold)
+- [ ] Decision logging to Firestore
+- [ ] Unit and integration tests for orchestrator
 
-**Priority 2: Phase 5 - Challenge Flow** (After Phase 4)
+**Priority 2: Phase 5 - Invite Creation Flow** (After Phase 4)
+- [x] Task list created (`planning/tasks/phase_5.md`) ✅
+- [ ] Session Intelligence service (challenge generation)
+- [ ] Smart link service (short code generation)
+- [ ] Invite creation API (`POST /api/invite/create`)
+- [ ] Share UI (results page integration)
+
+**Priority 3: Phase 6 - Challenge Flow** (After Phase 5)
 - [ ] Invite landing page (`/invite/:shortCode`)
 - [ ] Challenge acceptance flow
 - [ ] Challenge quiz page (`/challenge/:id`)
@@ -120,23 +183,45 @@
 - **Analytics**: Pre-calculated counters updated on events, not complex queries
 - **Share Cards**: Text-only for MVP (no image generation)
 - **Seed Data**: ✅ Complete - 10 users, 25 invites, K-factor 1.40 (verified)
+- **Phase 5 Planning**: ✅ Complete - Comprehensive task list created with 16 detailed tasks
+- **Atomic Writes**: Invite creation + analytics counter must use single Firestore batch write
+- **Question Selection**: Deterministic (first 5 from skill) for consistent testing
+- **Short Codes**: 6-8 chars, case-insensitive, with collision handling (retry up to 5x)
 
 ---
 
 ## Implementation Roadmap
 
+### Phase 4: Loop Orchestrator Agent (Day 5-6 - 6-8 hours) ✅
+- [x] LoopOrchestrator class (`src/agents/LoopOrchestrator.ts`) ✅
+- [x] Eligibility checks (score ≥50%, invites today <3, last invite >1hr ago) ✅
+- [x] Decision logging to `decisions` collection ✅
+- [x] Unit and integration tests ✅
+- [x] API endpoint (`POST /api/orchestrator/decide`) ✅
+- [x] See `planning/tasks/phase_4.md` for detailed subtasks ✅
 
-### Phase 4: Challenge Flow (Day 5-7 - 4-6 hours)
+### Phase 5: Invite Creation Flow (Day 6-7 - 6-8 hours)
+- [x] Task list created (`planning/tasks/phase_5.md`) ✅
+- [ ] Session Intelligence service (challenge generation from skill gaps)
+- [ ] Smart link service (short code generation with collision handling)
+- [ ] `POST /api/invite/create` (orchestrator decision → create invite → analytics counter +1)
+- [ ] Share UI (results page integration, modal/card display)
+- [ ] Unit, integration, and E2E tests
+- [ ] See `planning/tasks/phase_5.md` for detailed subtasks
+
+### Phase 6: Challenge Landing & Acceptance (Day 7-8 - 4-6 hours)
 - [ ] `GET /api/invite/:shortCode` (landing page) + analytics counter update (invites_opened +1)
 - [ ] Landing page UI (`/invite/:shortCode`)
 - [ ] `POST /api/invite/:code/accept` (accept challenge) + analytics counter update (invites_accepted +1)
+
+### Phase 7: Challenge Completion (Day 8-9 - 4-6 hours)
 - [ ] Challenge quiz page (`/challenge/:id`) with 5 questions
 - [ ] `POST /api/challenge/complete` (submit answers) + analytics counter update (fvm_reached +1)
 - [ ] Rewards distribution (100 XP to both users)
 - [ ] Results/comparison page
 - [ ] Test: Complete full invite → accept → challenge flow
 
-### Phase 5: Analytics Dashboard (Day 7-9 - 4-5 hours)
+### Phase 8: Analytics Dashboard (Day 9-10 - 4-5 hours)
 - [ ] Analytics counters collection (single document)
 - [ ] Counter update logic (on each event: invite sent, opened, accepted, FVM reached)
 - [ ] `GET /api/analytics` endpoint (reads from counters, simple calculation)
@@ -144,7 +229,7 @@
 - [ ] Display K-factor and funnel metrics (All Time for MVP)
 - [ ] Test: Verify K-factor ≥1.20 with seed data
 
-### Phase 6: Polish + Demo Prep (Day 9-10 - 2-4 hours)
+### Phase 9: Polish + Demo Prep (Day 11-12 - 2-4 hours)
 - [ ] UI/UX polish (Tailwind styling)
 - [ ] Error handling (Orchestrator denials, network errors)
 - [ ] Loading states
@@ -265,8 +350,8 @@
 ✅ **Product Context**: Complete  
 ✅ **System Patterns**: Complete  
 ✅ **Technical Context**: Complete  
-✅ **Active Context**: Complete (this file)  
-⏳ **Progress**: To be updated during implementation
+✅ **Active Context**: Complete (this file, updated 2025-11-03)  
+✅ **Progress**: Updated with Phase 4 completion and Phase 5 planning (2025-11-03)
 
 ---
 
@@ -289,9 +374,9 @@ When continuing work:
 
 ---
 
-**Status**: Phase 3 complete ✅  
-**Confidence**: High - practice test flow working, all tests passing, ready for Phase 4  
-**Next Session**: Begin Phase 4 (Loop Orchestrator Agent)
+**Status**: Phase 4 complete ✅ | Phase 5 planning complete ✅  
+**Confidence**: High - Orchestrator agent working, comprehensive Phase 5 task list ready, all dependencies satisfied  
+**Next Session**: Begin Phase 5 implementation (Invite Creation Flow) - start with Session Intelligence service (Task 11)
 
 ## Phase 2 Completion Summary
 

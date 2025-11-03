@@ -24,3 +24,9 @@ dotenv.config({
 // Set test environment variables
 process.env.NODE_ENV = 'test';
 
+// Set Firebase emulator host for tests (if not already set)
+// This ensures firebase-admin connects to the emulator instead of real Firestore
+if (!process.env.FIRESTORE_EMULATOR_HOST) {
+  process.env.FIRESTORE_EMULATOR_HOST = 'localhost:8080';
+}
+
