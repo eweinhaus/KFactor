@@ -1,4 +1,4 @@
-# 10x K Factor — Viral, Gamified, Supercharged Varsity Tutors
+# 10x K Factor — Viral, Gamified, Supercharged Learning Platform
 
 **Finalized Bootcamp Brief**
 
@@ -6,7 +6,7 @@
 
 ## The Challenge
 
-Varsity Tutors has rich products (1:1 scheduled tutoring, instant on-demand tutoring, AI tutoring, live classes, diagnostics, practice, flashcards, etc.). Design and implement a production-ready growth system that makes learning feel **fun, social, and "alive,"** and that **10×'s viral growth** by turning every touchpoint into a shareable, referable moment—across students, parents, and tutors.
+This learning platform has rich products (1:1 scheduled tutoring, instant on-demand tutoring, AI tutoring, live classes, diagnostics, practice, flashcards, etc.). Design and implement a production-ready growth system that makes learning feel **fun, social, and "alive,"** and that **10×'s viral growth** by turning every touchpoint into a shareable, referable moment—across students, parents, and tutors.
 
 ---
 

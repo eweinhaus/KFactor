@@ -4,7 +4,7 @@
 
 ## Overview
 
-This project implements a viral growth system for Varsity Tutors' learning platform, focusing on the Buddy Challenge viral loop with a K-factor target of ≥1.20.
+This project implements a viral growth system for a learning platform, focusing on the Buddy Challenge viral loop with a K-factor target of ≥1.20.
 
 ## Technology Stack
 
@@ -179,5 +179,5 @@ Should compile without TypeScript errors.
 
 ## License
 
-Private project - Varsity Tutors
+Private project
 

@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This project is a viral growth engineering challenge to transform Varsity Tutors' learning platform into a social, gamified experience that drives exponential user acquisition through viral growth mechanics. The goal is to achieve a **K-factor ≥ 1.20**, where each user brings 1.2+ new users through shareable, referable moments.
+This project is a viral growth engineering challenge to transform a learning platform into a social, gamified experience that drives exponential user acquisition through viral growth mechanics. The goal is to achieve a **K-factor ≥ 1.20**, where each user brings 1.2+ new users through shareable, referable moments.
 
 ### Core Challenge
 

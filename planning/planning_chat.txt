@@ -1,6 +1,6 @@
-Project Summary: 10x K-Factor Viral Growth System for Varsity Tutors
+Project Summary: 10x K-Factor Viral Growth System
 What This Project Is
-This is a viral growth engineering challenge to transform Varsity Tutors' learning platform into a social, gamified experience that drives exponential user acquisition. The goal is to achieve a K-factor ≥ 1.20 (viral coefficient where each user brings 1.2+ new users) by making every interaction shareable and referable.
+This is a viral growth engineering challenge to transform a learning platform into a social, gamified experience that drives exponential user acquisition. The goal is to achieve a K-factor ≥ 1.20 (viral coefficient where each user brings 1.2+ new users) by making every interaction shareable and referable.
 What You're Being Asked To Do
 Build a production-ready system with three main pillars:
 1. Agent-Based Architecture (7 AI Agents)

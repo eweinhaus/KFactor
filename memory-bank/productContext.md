@@ -6,7 +6,7 @@
 
 ## Why This Project Exists
 
-Varsity Tutors needs to transform its learning platform into a social, gamified experience that drives exponential user acquisition through viral growth mechanics. The current platform lacks organic growth mechanisms that turn every user interaction into a potential referral opportunity.
+This project transforms a learning platform into a social, gamified experience that drives exponential user acquisition through viral growth mechanics. The current platform lacks organic growth mechanisms that turn every user interaction into a potential referral opportunity.
 
 ### Problem Statement
 
