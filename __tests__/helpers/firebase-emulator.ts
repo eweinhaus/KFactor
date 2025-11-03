@@ -67,3 +67,4 @@ export function isEmulatorRunning(): boolean {
   return !!process.env.FIRESTORE_EMULATOR_HOST || process.env.CI === 'true';
 }
 
+

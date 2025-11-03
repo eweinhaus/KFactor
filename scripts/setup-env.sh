@@ -72,3 +72,4 @@ echo ""
 echo "✅ Service account key configured in .env.local"
 echo "⚠️  Remember to add Firebase client config values (NEXT_PUBLIC_*) from Firebase Console"
 
+
