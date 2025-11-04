@@ -1,18 +1,70 @@
 # Active Context: Current Work & Next Steps
 
-**Last Updated:** 2025-01-22 (Phase 5 Complete & Tested)
+**Last Updated:** 2025-01-22 (Phase 6 Complete & Tested)
 
 ---
 
 ## Current Status
 
-**Phase**: Phase 5 Complete ✅ | Phase 6 Ready  
-**Stage**: Invite Creation Flow Complete → Ready for Phase 6 (Challenge Landing & Acceptance)  
-**Note**: Phase 5 implementation complete with all services, API, UI, and tests
+**Phase**: Phase 6 Complete ✅ | Phase 7 Ready  
+**Stage**: Challenge Landing & Acceptance Complete → Ready for Phase 7 (Challenge Completion)  
+**Note**: Phase 6 implementation complete with all APIs, landing page, acceptance flow, and tests
 
 ---
 
 ## Recent Activity
+
+### Phase 6: Challenge Landing & Acceptance (Complete ✅)
+
+**Completion Date**: 2025-01-22
+
+1. **Invite Resolution API**: `GET /api/invite/:shortCode` ✅
+   - Short code validation and normalization (case-insensitive)
+   - Idempotent opened event logging (checks `opened_at` before logging)
+   - Atomic analytics counter updates (invite + counter in batch)
+   - Privacy-safe inviter data (first name only)
+   - Comprehensive error handling (400, 404, 500)
+   - Integration tests with Firebase Emulator ✅
+
+2. **Invite Landing Page**: `/invite/[shortCode]` ✅
+   - Next.js Server Component for fast initial load
+   - Challenge preview display (skill, questions, time, score)
+   - Inviter name and share copy
+   - Accept Challenge button with modal
+   - 404 handling for invalid codes
+   - Mobile responsive design
+
+3. **Challenge Acceptance Flow**: `POST /api/invite/:shortCode/accept` ✅
+   - Mock auth (name/email-based user creation)
+   - User creation/finding logic (finds by email if exists)
+   - Atomic accepted event logging (invite + counter in batch)
+   - Analytics counter updates
+   - Form validation (name required, email optional)
+   - Error handling (already accepted, invalid code, validation)
+   - Integration tests with Firebase Emulator ✅
+
+4. **Accept Modal Component**: Client component ✅
+   - Form with name and optional email fields
+   - Loading states and error handling
+   - Success redirect to challenge page (Phase 7)
+   - User ID storage in localStorage (mock auth)
+
+5. **Testing Complete**:
+   - Unit tests: Invite resolution utils (normalize, validate, extractFirstName) ✅
+   - Integration tests: Invite Resolution API (8 test cases) ✅
+   - Integration tests: Accept Challenge API (10 test cases) ✅
+   - E2E tests: Full landing & acceptance flow (5 test scenarios) ✅
+   - All tests passing ✅
+
+6. **Key Features**:
+   - Idempotent opened logging (no double-counting)
+   - Atomic batch writes (invite + analytics counter)
+   - Privacy-safe display (first name only, no PII)
+   - Mock auth (name/email-based, no passwords for MVP)
+   - Case-insensitive short code handling
+   - Comprehensive error handling
+
+---
 
 ### Phase 5: Invite Creation Flow (Complete ✅)
 
@@ -166,11 +218,12 @@
 
 ### Immediate Next Steps
 
-**Priority 1: Phase 6 - Challenge Landing & Acceptance** (Next)
-- [ ] Invite landing page (`/invite/:shortCode`)
-- [ ] Challenge acceptance flow
-- [ ] Challenge quiz page (`/challenge/:id`)
-- [ ] Challenge completion and rewards
+**Priority 1: Phase 7 - Challenge Completion** (Next)
+- [ ] Challenge quiz page (`/challenge/:id`) with 5 questions
+- [ ] Challenge completion API (`POST /api/challenge/complete`)
+- [ ] Reward distribution (100 XP to both users)
+- [ ] FVM tracking (`fvm_reached_at` + analytics counter)
+- [ ] Results/comparison page
 
 ---
 

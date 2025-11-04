@@ -149,4 +149,37 @@ export interface DecisionContext {
   lastInviteHoursAgo?: number;
 }
 
+// Invite Resolution Response
+export interface InviteResolutionResponse {
+  inviteId: string;
+  inviter: {
+    name: string; // First name only
+  };
+  challenge: {
+    skill: string;
+    questionCount: number;
+    estimatedTime: string;
+    inviterScore: number;
+    shareCopy: string;
+  };
+  callToAction: string;
+}
+
+// Accept Challenge Request/Response
+export interface AcceptChallengeRequest {
+  name: string;
+  email?: string;
+}
+
+export interface AcceptChallengeResponse {
+  userId: string;
+  inviteId: string;
+  challenge: {
+    skill: string;
+    questions: Question[];
+    inviterScore: number;
+  };
+  redirectUrl: string;
+}
+
 
