@@ -164,6 +164,22 @@ export async function POST(request: NextRequest) {
       },
     };
 
+    // Ensure analytics counter document exists before batch write
+    const analyticsRef = db.collection('analytics_counters').doc('global');
+    const analyticsDoc = await analyticsRef.get();
+    
+    if (!analyticsDoc.exists) {
+      // Initialize analytics counter document if it doesn't exist
+      await analyticsRef.set({
+        total_users: 0,
+        total_invites_sent: 0,
+        total_invites_opened: 0,
+        total_invites_accepted: 0,
+        total_fvm_reached: 0,
+        last_updated: FieldValue.serverTimestamp(),
+      });
+    }
+    
     // Atomic batch write: invite creation + analytics counter increment
     const batch = db.batch();
     
@@ -172,7 +188,6 @@ export async function POST(request: NextRequest) {
     batch.set(inviteRef, invite);
     
     // 2. Increment analytics counter
-    const analyticsRef = db.collection('analytics_counters').doc('global');
     batch.update(analyticsRef, {
       total_invites_sent: FieldValue.increment(1),
       last_updated: FieldValue.serverTimestamp(),
@@ -196,11 +211,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(response, { status: 200 });
   } catch (error: any) {
     console.error('Error creating invite:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      name: error.name,
+    });
     
     // Handle specific error types
     if (error.message?.includes('collision_error')) {
       return NextResponse.json(
         { error: 'server_error', message: 'Failed to generate unique invite code. Please try again.' },
+        { status: 500 }
+      );
+    }
+    
+    // Handle Firestore errors
+    if (error.code === 'not-found' || error.message?.includes('not found')) {
+      return NextResponse.json(
+        { error: 'server_error', message: 'Required data not found. Please try again.' },
         { status: 500 }
       );
     }
